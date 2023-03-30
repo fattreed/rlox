@@ -6,12 +6,16 @@ pub struct Lox {
 }
 
 impl Lox {
+    //REPL
     pub fn run_prompt(&mut self) {
         loop {
             print!("> ");
             let mut line = String::new();
             match io::stdin().read_line(&mut line) {
                 Ok(b) => {
+                    // i think this is a windows bug bug the byte size is 2 when you pass in
+                    // nothing. yes im using windows.
+                    // TODO: test on linux/mac
                     if b == 2 {
                         println!("bye pumpkin! bye pumpkin!");
                         break;
