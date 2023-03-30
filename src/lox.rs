@@ -43,7 +43,7 @@ impl Lox {
         let tokens = scanner.scan_tokens(&mut self.error);
         
         for token in tokens {
-            println!("{:?}", token);
+            println!("{token:?}");
         }
     }
 }
@@ -58,7 +58,7 @@ impl LoxError {
     }
 
     pub fn report(&mut self, line: usize, location: String, message: String) {
-        eprintln!("line: {}. Error {}: {}", line, location, message);
+        eprintln!("line: {line}. Error {location}: {message}");
         self.had_error = true;
     }
 }

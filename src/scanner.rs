@@ -10,8 +10,8 @@ pub struct Scanner {
 }
 
 impl Scanner {
-    pub fn new(source: String) -> Self {
-        Scanner {
+    #[must_use] pub fn new(source: String) -> Self {
+        Self {
             source,
             tokens: vec![],
             start: 0,
@@ -79,7 +79,7 @@ pub struct Literal {
 
 impl Literal {
     fn new() -> Self {
-        Literal {
+        Self {
 
         } 
     }
@@ -94,7 +94,7 @@ pub struct Token {
 }
 
 impl Token {
-    pub fn to_string(&self) -> String {
+    #[must_use] pub fn to_string(&self) -> String {
         format!("{:?} {:?} {:?}", self.token_type, self.lexeme, self.literal)
     }
 }
