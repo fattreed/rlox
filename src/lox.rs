@@ -59,12 +59,12 @@ impl LoxError {
 
     pub fn report(&mut self, line: usize, location: String, message: String) {
         eprintln!("line: {}. Error {}: {}", line, location, message);
-        self.had_error = true
+        self.had_error = true;
     }
 }
 
 #[test]
 fn test_run_file() {
-    let path = "test.lox";
+    let _path = "test.lox";
     
 }

@@ -12,7 +12,7 @@ pub struct Scanner {
 impl Scanner {
     pub fn new(source: String) -> Self {
         Scanner {
-            source: source,
+            source,
             tokens: vec![],
             start: 0,
             current: 0,
@@ -67,7 +67,7 @@ impl Scanner {
         self.tokens.push(Token { 
             token_type: token, 
             lexeme: text.to_string(), 
-            literal: literal, 
+            literal, 
             line: self.line })
     }
 }
