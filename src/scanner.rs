@@ -20,19 +20,22 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&self) -> Vec<Token> {
+    // FIXME: not working with multiline
+    #[must_use] pub fn scan_tokens(&self) -> Vec<Token> {
         let chars = self.source.chars(); 
         let mut tokens = vec![];
         for c in chars {
             let token_type = self.scan_token(c);
+            println!("TOKEN {:?}", token_type);
             match token_type {
                 Some(t) => {
                     tokens.push(Token {
-                    token_type: t,
-                    lexeme: String::new(),
-                    literal: Some(Literal::new()),
-                    line: self.line
-                })}
+                        token_type: t,
+                        lexeme: String::new(),
+                        literal: Some(Literal::new()),
+                        line: self.line
+                    });
+                }
                 _ => break,
             }
        }
@@ -121,7 +124,7 @@ impl fmt::Display for Token {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
     // single char
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE, 
@@ -141,12 +144,6 @@ pub enum TokenType {
     EOF
 }
 
-impl PartialEq for TokenType {
-    fn eq(&self, other: &Self) -> bool {
-        self == other
-    }
-}
-
 #[test]
 fn test_scan_token() {
     let source = fs::read_to_string("test.lox").expect("couldnt get file");
@@ -154,13 +151,14 @@ fn test_scan_token() {
     let expected_tokens = vec![
         TokenType::LEFT_PAREN,
         TokenType::RIGHT_PAREN,
+        TokenType::BANG,
         TokenType::EOF
     ];
-    
+   
+
     let tokens = scanner.scan_tokens();
-    let token_types: Vec<_> = tokens
-        .iter()
-        .map(|t| t.token_type.clone())
-        .collect();
-    assert_eq!(expected_tokens[..], token_types[..]);
+    print!("{:?}", tokens);
+    for (i, token) in tokens.iter().enumerate() {
+        assert_eq!(token.token_type, expected_tokens[i]);
+    }
 }
