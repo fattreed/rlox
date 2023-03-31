@@ -2,7 +2,7 @@ use crate::scanner;
 use std::{io, fs};
 
 pub struct Lox {
-    pub error: LoxError,
+    pub error: Error,
 }
 
 impl Lox {
@@ -19,10 +19,9 @@ impl Lox {
                     if b == 2 {
                         println!("bye pumpkin! bye pumpkin!");
                         break;
-                    } else {
-                        self.run(line);
-                        self.error.had_error = false;
-                    }
+                    } 
+                    self.run(line);
+                    self.error.had_error = false;
                 }
                 Err(_) => break,
             }
@@ -30,9 +29,12 @@ impl Lox {
     }
 
     pub fn run_file(&mut self, path: String) {
-        let contents = fs::read_to_string(path)
-            .expect("cannot read from file");
-        self.run(contents);
+        let contents = fs::read_to_string(path);
+        match contents {
+            Ok(s) => self.run(s),
+            Err(e) => eprintln!("{e}"),
+        }
+
         if self.error.had_error {
             eprintln!("error!");
         }
@@ -48,23 +50,18 @@ impl Lox {
     }
 }
 
-pub struct LoxError {
+pub struct Error {
     pub had_error: bool,
 }
 
-impl LoxError {
-    pub fn error(&mut self, line: usize, message: String) {
-        self.report(line, String::new(), message);
+impl Error {
+    pub fn error(&mut self, line: usize, message: &str) {
+        self.report(line, "", message);
     }
 
-    pub fn report(&mut self, line: usize, location: String, message: String) {
+    pub fn report(&mut self, line: usize, location: &str, message: &str) {
         eprintln!("line: {line}. Error {location}: {message}");
         self.had_error = true;
     }
 }
 
-#[test]
-fn test_run_file() {
-    let _path = "test.lox";
-    
-}

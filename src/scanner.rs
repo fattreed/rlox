@@ -1,4 +1,5 @@
-use crate::lox::LoxError;
+use crate::lox::Error;
+use std::fmt;
 
 #[derive(Debug)]
 pub struct Scanner {
@@ -10,7 +11,7 @@ pub struct Scanner {
 }
 
 impl Scanner {
-    #[must_use] pub fn new(source: String) -> Self {
+    #[must_use] pub const fn new(source: String) -> Self {
         Self {
             source,
             tokens: vec![],
@@ -20,10 +21,10 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&mut self, error: &mut LoxError) -> Vec<Token> {
+    pub fn scan_tokens(&mut self, error: &mut Error) -> Vec<Token> {
         while self.is_at_end() {
             self.start = self.current;
-            self.scan_token(error)
+            self.scan_token(error);
         }
 
         self.tokens.push(Token { 
@@ -39,7 +40,7 @@ impl Scanner {
         self.current >= self.source.chars().count()
     }
 
-    fn scan_token(&mut self, error: &mut LoxError) {
+    fn scan_token(&mut self, error: &mut Error) {
         let c = self.source.chars().nth(self.current);
         self.current += 1;
 
@@ -54,7 +55,39 @@ impl Scanner {
             Some('+') => self.add_token(TokenType::PLUS),
             Some(';') => self.add_token(TokenType::SEMICOLON),
             Some('*') => self.add_token(TokenType::STAR),
-            _ => error.error(self.line, "unexpected character".to_string()),
+            Some('!') => {
+                if self.is_at_end() || c != Some('='){ 
+                    self.add_token(TokenType::BANG);
+                } else {
+                    self.add_token(TokenType::BANG_EQUAL);
+                    self.current += 1;
+                }
+            }
+            Some('=') => {
+                if self.is_at_end() || c != Some('='){ 
+                    self.add_token(TokenType::EQUAL);
+                } else {
+                    self.add_token(TokenType::EQUAL_EQUAL);
+                    self.current += 1;
+                }
+            }
+            Some('<') => {
+                if self.is_at_end() || c == Some('='){ 
+                    self.add_token(TokenType::LESS);
+                } else {
+                    self.add_token(TokenType::LESS_EQUAL);
+                    self.current += 1;
+                }
+            }
+            Some('>') => {
+                if self.is_at_end() || c == Some('='){ 
+                    self.add_token(TokenType::GREATER);
+                } else {
+                    self.add_token(TokenType::GREATER_EQUAL);
+                    self.current += 1;
+                }
+            }
+            _ => error.error(self.line, "unexpected character"),
         };
     }
 
@@ -68,7 +101,8 @@ impl Scanner {
             token_type: token, 
             lexeme: text.to_string(), 
             literal, 
-            line: self.line })
+            line: self.line 
+        });
     }
 }
 
@@ -93,12 +127,13 @@ pub struct Token {
     line: usize,
 }
 
-impl Token {
-    #[must_use] pub fn to_string(&self) -> String {
-        format!("{:?} {:?} {:?}", self.token_type, self.lexeme, self.literal)
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?} {:?} {:?}", self.token_type, self.lexeme, self.literal)
     }
 }
 
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone)]
 pub enum TokenType {
     // single char
@@ -106,7 +141,7 @@ pub enum TokenType {
     COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
 
     // one or two char tokens
-    BANG, BAND_EQUAL, EQUAL,EQUAL_EQUAL, GREATER,
+    BANG, BANG_EQUAL, EQUAL,EQUAL_EQUAL, GREATER,
     GREATER_EQUAL, LESS, LESS_EQUAL,
 
     // literals
