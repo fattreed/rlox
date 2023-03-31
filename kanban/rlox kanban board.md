@@ -10,6 +10,7 @@ kanban-plugin: basic
 - [ ] syntax trees
 - [ ] representing code
 - [ ] evaluating expressions
+- [ ] start writing tests
 
 
 ## doing
