@@ -1,5 +1,4 @@
-use crate::lox::Error;
-use std::fmt;
+use std::{fmt, fs};
 
 #[derive(Debug)]
 pub struct Scanner {
@@ -21,88 +20,77 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&mut self, error: &mut Error) -> Vec<Token> {
-        while self.is_at_end() {
-            self.start = self.current;
-            self.scan_token(error);
-        }
+    pub fn scan_tokens(&self) -> Vec<Token> {
+        let chars = self.source.chars(); 
+        let mut tokens = vec![];
+        for c in chars {
+            let token_type = self.scan_token(c);
+            match token_type {
+                Some(t) => {
+                    tokens.push(Token {
+                    token_type: t,
+                    lexeme: String::new(),
+                    literal: Some(Literal::new()),
+                    line: self.line
+                })}
+                _ => break,
+            }
+       }
 
-        self.tokens.push(Token { 
+        tokens.push(Token { 
             token_type: TokenType::EOF, 
             lexeme: String::new(), 
             literal: Some(Literal::new()), 
             line: self.line 
         });
-        self.tokens.clone()
+        tokens
     }
 
-    fn is_at_end(&self) -> bool {
-        self.current >= self.source.chars().count()
-    }
-
-    fn scan_token(&mut self, error: &mut Error) {
-        let c = self.source.chars().nth(self.current);
-        self.current += 1;
-
+    fn scan_token(&self, c: char) -> Option<TokenType> {
         match c {
-            Some('(') => self.add_token(TokenType::LEFT_PAREN),
-            Some(')') => self.add_token(TokenType::RIGHT_PAREN),
-            Some('{') => self.add_token(TokenType::LEFT_BRACE),
-            Some('}') => self.add_token(TokenType::RIGHT_BRACE),
-            Some(',') => self.add_token(TokenType::COMMA),
-            Some('.') => self.add_token(TokenType::DOT),
-            Some('-') => self.add_token(TokenType::MINUS),
-            Some('+') => self.add_token(TokenType::PLUS),
-            Some(';') => self.add_token(TokenType::SEMICOLON),
-            Some('*') => self.add_token(TokenType::STAR),
-            Some('!') => {
-                if self.is_at_end() || c != Some('='){ 
-                    self.add_token(TokenType::BANG);
+            '(' => Some(TokenType::LEFT_PAREN),
+            ')' => Some(TokenType::RIGHT_PAREN),
+            '{' => Some(TokenType::LEFT_BRACE),
+            '}' => Some(TokenType::RIGHT_BRACE),
+            ',' => Some(TokenType::COMMA),
+            '.' => Some(TokenType::DOT),
+            '-' => Some(TokenType::MINUS),
+            '+' => Some(TokenType::PLUS),
+            ';' => Some(TokenType::SEMICOLON),
+            '*' => Some(TokenType::STAR),
+            '!' => {
+                if c != '=' { 
+                    Some(TokenType::BANG)
                 } else {
-                    self.add_token(TokenType::BANG_EQUAL);
-                    self.current += 1;
+                    Some(TokenType::BANG_EQUAL)
                 }
             }
-            Some('=') => {
-                if self.is_at_end() || c != Some('='){ 
-                    self.add_token(TokenType::EQUAL);
+            '=' => {
+                if c != '=' { 
+                    Some(TokenType::EQUAL)
                 } else {
-                    self.add_token(TokenType::EQUAL_EQUAL);
-                    self.current += 1;
+                    Some(TokenType::EQUAL_EQUAL)
                 }
             }
-            Some('<') => {
-                if self.is_at_end() || c == Some('='){ 
-                    self.add_token(TokenType::LESS);
+            '<' => {
+                if c != '=' { 
+                    Some(TokenType::LESS)
                 } else {
-                    self.add_token(TokenType::LESS_EQUAL);
-                    self.current += 1;
+                    Some(TokenType::LESS_EQUAL)
                 }
             }
-            Some('>') => {
-                if self.is_at_end() || c == Some('='){ 
-                    self.add_token(TokenType::GREATER);
+            '>' => {
+                if c != '=' { 
+                    Some(TokenType::GREATER)
                 } else {
-                    self.add_token(TokenType::GREATER_EQUAL);
-                    self.current += 1;
+                    Some(TokenType::GREATER_EQUAL)
                 }
             }
-            _ => error.error(self.line, "unexpected character"),
-        };
-    }
-
-    fn add_token(&mut self, token: TokenType) {
-        self.add_token_literal(token, None);
-    }
-
-    fn add_token_literal(&mut self, token: TokenType, literal: Option<Literal>) {
-        let text = &self.source[self.start..self.current];
-        self.tokens.push(Token { 
-            token_type: token, 
-            lexeme: text.to_string(), 
-            literal, 
-            line: self.line 
-        });
+            _ => {
+                eprint!("unexpected token: {}", self.line);
+                None
+            }
+        }
     }
 }
 
@@ -113,18 +101,17 @@ pub struct Literal {
 
 impl Literal {
     fn new() -> Self {
-        Self {
-
-        } 
+        Self {}
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Token { 
     token_type: TokenType,
     lexeme: String,
     literal: Option<Literal>,
-    line: usize,
+    line: usize, //TODO: remove silenced warning
 }
 
 impl fmt::Display for Token {
@@ -154,3 +141,26 @@ pub enum TokenType {
     EOF
 }
 
+impl PartialEq for TokenType {
+    fn eq(&self, other: &Self) -> bool {
+        self == other
+    }
+}
+
+#[test]
+fn test_scan_token() {
+    let source = fs::read_to_string("test.lox").expect("couldnt get file");
+    let scanner = Scanner::new(source);
+    let expected_tokens = vec![
+        TokenType::LEFT_PAREN,
+        TokenType::RIGHT_PAREN,
+        TokenType::EOF
+    ];
+    
+    let tokens = scanner.scan_tokens();
+    let token_types: Vec<_> = tokens
+        .iter()
+        .map(|t| t.token_type.clone())
+        .collect();
+    assert_eq!(expected_tokens[..], token_types[..]);
+}

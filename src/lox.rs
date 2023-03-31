@@ -2,10 +2,13 @@ use crate::scanner;
 use std::{io, fs};
 
 pub struct Lox {
-    pub error: Error,
+    had_error: bool,
 }
 
 impl Lox {
+    #[must_use] pub const fn new() -> Self {
+        Self { had_error: false }
+    }
     //REPL
     pub fn run_prompt(&mut self) {
         loop {
@@ -21,7 +24,7 @@ impl Lox {
                         break;
                     } 
                     self.run(line);
-                    self.error.had_error = false;
+                    self.had_error = false;
                 }
                 Err(_) => break,
             }
@@ -35,33 +38,18 @@ impl Lox {
             Err(e) => eprintln!("{e}"),
         }
 
-        if self.error.had_error {
+        if self.had_error {
             eprintln!("error!");
         }
     }
 
-    pub fn run(&mut self, source: String) {
-        let mut scanner = scanner::Scanner::new(source);
-        let tokens = scanner.scan_tokens(&mut self.error);
+    pub fn run(&self, source: String) {
+        let scanner = scanner::Scanner::new(source);
+        let tokens = scanner.scan_tokens();
         
         for token in tokens {
             println!("{token:?}");
         }
-    }
-}
-
-pub struct Error {
-    pub had_error: bool,
-}
-
-impl Error {
-    pub fn error(&mut self, line: usize, message: &str) {
-        self.report(line, "", message);
-    }
-
-    pub fn report(&mut self, line: usize, location: &str, message: &str) {
-        eprintln!("line: {line}. Error {location}: {message}");
-        self.had_error = true;
     }
 }
 
