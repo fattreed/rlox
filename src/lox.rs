@@ -7,9 +7,10 @@ pub struct Lox {
 
 impl Lox {
     #[must_use] pub const fn new() -> Self {
+        //FIXME: figure out error weirdness. prolly some oop bs
         Self { had_error: false }
     }
-    //FIXME: fix this cause it's kinda not cool
+    
     pub fn run_prompt(&mut self) {
         loop {
             print!("> ");

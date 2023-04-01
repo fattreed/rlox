@@ -58,7 +58,7 @@ impl Scanner {
                                                                     self.source[start..current].to_string(), 
                                                                     line)),
                 }
-            }
+            } 
         }
         tokens.push(Self::create_token_literal(TokenType::EOF, 
                                               String::new(), 
