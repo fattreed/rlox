@@ -157,6 +157,8 @@ impl Scanner {
         }
     }
 
+    //stfu clippy
+    #[allow(clippy::option_if_let_else)]
     fn identifier(&self, current: &mut usize, is_at_end: bool, start: usize) -> (Literal, Option<TokenType>) {
         while Self::is_alphanumeric(self.peek(*current, is_at_end)) {
             self.advance(current);
