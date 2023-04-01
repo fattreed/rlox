@@ -18,29 +18,26 @@ impl Scanner {
         let mut current: usize = 0;
         let mut start: usize = current;
         let mut line: usize = 1;
-        for c in chars.iter() {
+        for _c in &chars {
             start = current;
             
-            let is_at_end = current >= chars.iter().count();
+            let is_at_end = current >= chars.len();
             let (value, token_type) = self.scan_token(&mut current, start, &mut line, is_at_end);
 
-            match token_type {
-                Some(t) => {
-                    match value.clone() {
-                        Literal::String(s) => {
-                            tokens.push(self.create_token_literal(t, s, value, line))
-                        }
-                        Literal::Number(n) => {
-                            tokens.push(self.create_token_literal(t, n.to_string(), value, line))
-                        }
-                        Literal::None => tokens.push(self.create_token(t, "".to_string(), line)),
+            if let Some(t) = token_type {
+                match value.clone() {
+                    Literal::String(s) => {
+                        tokens.push(self.create_token_literal(t, s, value, line))
                     }
+                    Literal::Number(n) => {
+                        tokens.push(self.create_token_literal(t, n.to_string(), value, line))
+                    }
+                    Literal::None => tokens.push(self.create_token(t, String::new(), line)),
                 }
-                _ => (),
             }
         }
         tokens.push(self.create_token_literal(TokenType::EOF, 
-                                              "".to_string(), 
+                                              String::new(), 
                                               Literal::None, 
                                               line));
         tokens
@@ -59,10 +56,10 @@ impl Scanner {
                             literal: Literal,
                             line: usize) -> Token {
         Token {
-            token_type: token_type,
+            token_type,
             lexeme: text,
-            literal: literal,
-            line: line,
+            literal,
+            line,
         } 
     }
 
@@ -122,7 +119,7 @@ impl Scanner {
                 }
             }
             Some('"') => self.string(current, start, is_at_end, line),
-            Some(' ') | Some('\r') | Some('\t') => (Literal::None, None),
+            Some(' ' | '\r' | '\t') => (Literal::None, None),
             Some('\n') => { *line += 1; (Literal::None, None) }
             _ => {
                 if Self::is_digit(c) {
@@ -137,7 +134,7 @@ impl Scanner {
 
     fn is_digit(c: Option<char>) -> bool {
         match c {
-            Some(digit) => digit >= '0' && digit <= '9',
+            Some(digit) => digit.is_ascii_digit(),
             None => false,
         }
         
@@ -157,8 +154,8 @@ impl Scanner {
 
         let num = &self.source[start..*current];
         let num_val = num.parse::<f64>().unwrap();
-        println!("{:?}", num);
-        println!("{:?}", num_val);
+        println!("{num:?}");
+        println!("{num_val:?}");
         (Literal::Number(num_val), Some(TokenType::NUMBER))
     }
 
@@ -173,7 +170,7 @@ impl Scanner {
         }
 
         if is_at_end {
-            eprint!("error line {} unterminated string", line);
+            eprint!("error line {line} unterminated string");
             return (Literal::None, None);
         }
 
@@ -184,7 +181,7 @@ impl Scanner {
     }
 
     fn advance(&self, current: &mut usize) -> Option<char> {
-        let prev = current.clone();
+        let prev = *current;
         *current += 1;
         self.source.chars().nth(prev)
     }
@@ -235,7 +232,7 @@ impl fmt::Display for Token {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TokenType {
     // single char
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE, 

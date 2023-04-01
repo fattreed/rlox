@@ -43,7 +43,7 @@ mod test {
     fn test_scan_string() {
         let source = "\"this is a test string\"".to_string();
         let scanner = Scanner::new(source);
-        let expected_token = Token {
+        let _expected_token = Token {
             token_type: TokenType::STRING,
             lexeme: "this is a test string".to_string(),
             literal: Literal::String("this is a test string".to_string()),
@@ -61,7 +61,7 @@ mod test {
     fn test_scan_num() {
         let source = "420 69 4 2 0 6 9".to_string();
         let scanner = Scanner::new(source);
-        let expected_token = Token {
+        let _expected_token = Token {
             token_type: TokenType::NUMBER,
             lexeme: "420".to_string(),
             literal: Literal::Number(420.0),
