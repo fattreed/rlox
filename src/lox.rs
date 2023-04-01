@@ -9,7 +9,7 @@ impl Lox {
     #[must_use] pub const fn new() -> Self {
         Self { had_error: false }
     }
-    //REPL
+    //FIXME: fix this cause it's kinda not cool
     pub fn run_prompt(&mut self) {
         loop {
             print!("> ");
@@ -17,7 +17,8 @@ impl Lox {
             match io::stdin().read_line(&mut line) {
                 Ok(b) => {
                     // i think this is a windows bug bug the byte size is 2 when you pass in
-                    // nothing. yes im using windows.
+                    // nothing. yes im using windows. edit: ok yea windows is weird
+                    // im on fedora now, OK?!
                     // TODO: test on linux/mac
                     if b == 2 {
                         println!("bye pumpkin! bye pumpkin!");
