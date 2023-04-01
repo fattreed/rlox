@@ -16,10 +16,9 @@ impl Scanner {
         let chars: Vec<_> = self.source.chars().collect(); 
         let mut tokens = vec![];
         let mut current: usize = 0;
-        let mut start: usize = current;
         let mut line: usize = 1;
         for _c in &chars {
-            start = current;
+            let start: usize = current;
             
             let is_at_end = current >= chars.len();
             let (value, token_type) = self.scan_token(&mut current, start, &mut line, is_at_end);
