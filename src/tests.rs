@@ -1,7 +1,8 @@
 #[cfg(test)]
 mod test {
     use std::fs;
-    use crate::scanner::{Scanner, TokenType, Token, Literal};
+    use crate::scanner::Scanner;
+    use crate::token::{Token, TokenType, Literal};
 
     #[test]
     fn test_scan_token_type() {
