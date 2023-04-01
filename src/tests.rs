@@ -27,6 +27,7 @@ mod test {
             TokenType::GREATER,
             TokenType::GREATER_EQUAL,
             TokenType::STRING,
+            TokenType::NUMBER,
             TokenType::EOF,
         ];
        
