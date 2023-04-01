@@ -122,11 +122,34 @@ impl Scanner {
             _ => {
                 if Self::is_digit(c) {
                     self.number(current, is_at_end, start)
+                } else if Self::is_alpha(c) {
+                    self.identifier(current, is_at_end)
                 } else {
                     eprint!("unexpected token: {}", 0);
                     (Literal::None, None)
                 }
             }
+        }
+    }
+
+    fn identifier(&self, current: &mut usize, is_at_end: bool) -> (Literal, Option<TokenType>) {
+        while Self::is_alphanumeric(self.peek(*current, is_at_end)) {
+            self.advance(current);
+        }
+
+        (Literal::None, Some(TokenType::IDENTIFIER))
+    }
+    
+    const fn is_alphanumeric(c: Option<char>) -> bool {
+        Self::is_alpha(c) || Self::is_digit(c)
+    }
+
+    const fn is_alpha(c: Option<char>) -> bool {
+        match c {
+            Some(a) => {
+                (a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z') || a == '_'
+            }
+            None => false,
         }
     }
 

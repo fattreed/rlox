@@ -29,6 +29,7 @@ mod test {
                 TokenType::GREATER_EQUAL,
                 TokenType::STRING,
                 TokenType::NUMBER,
+                TokenType::IDENTIFIER,
                 TokenType::EOF,
             ];
            
@@ -77,6 +78,24 @@ mod test {
         assert_eq!(token.literal, Literal::Number(420.0));
         assert_eq!(token.line, 1);
 
+    }
+
+    #[test]
+    fn test_scan_ids() {
+        let source = "not reserved words".to_string();
+        let scanner = Scanner::new(source);
+        let _expected_token = Token {
+            token_type: TokenType::IDENTIFIER,
+            lexeme: "".to_string(),
+            literal: Literal::None,
+            line: 1,
+        }; 
+        
+        let token = scanner.scan_tokens()[1].clone();
+        assert_eq!(token.token_type, TokenType::IDENTIFIER);
+        assert_eq!(token.lexeme, "".to_string());
+        assert_eq!(token.literal, Literal::None);
+        assert_eq!(token.line, 1);
     }
 }
 
