@@ -1,5 +1,6 @@
 use std::fmt;
 
+//FIXME: refactor to not use a struct...is that like bad?
 #[derive(Debug)]
 pub struct Scanner {
     source: String,
