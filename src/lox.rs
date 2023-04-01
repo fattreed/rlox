@@ -19,7 +19,6 @@ impl Lox {
                     // i think this is a windows bug bug the byte size is 2 when you pass in
                     // nothing. yes im using windows. edit: ok yea windows is weird
                     // im on fedora now, OK?!
-                    // TODO: test on linux/mac
                     if b == 2 {
                         println!("bye pumpkin! bye pumpkin!");
                         break;
