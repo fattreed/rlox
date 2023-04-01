@@ -26,31 +26,29 @@ impl Scanner {
             if let Some(t) = token_type {
                 match value.clone() {
                     Literal::String(s) => {
-                        tokens.push(self.create_token_literal(t, s, value, line))
+                        tokens.push(Self::create_token_literal(t, s, value, line));
                     }
                     Literal::Number(n) => {
-                        tokens.push(self.create_token_literal(t, n.to_string(), value, line))
+                        tokens.push(Self::create_token_literal(t, n.to_string(), value, line));
                     }
-                    Literal::None => tokens.push(self.create_token(t, String::new(), line)),
+                    Literal::None => tokens.push(Self::create_token(t, String::new(), line)),
                 }
             }
         }
-        tokens.push(self.create_token_literal(TokenType::EOF, 
+        tokens.push(Self::create_token_literal(TokenType::EOF, 
                                               String::new(), 
                                               Literal::None, 
                                               line));
         tokens
     }
 
-    fn create_token(&self, 
-                    token_type: TokenType, 
+    const fn create_token(token_type: TokenType, 
                     text: String, 
                     line: usize) -> Token {
-        self.create_token_literal(token_type, text, Literal::None, line)
+        Self::create_token_literal(token_type, text, Literal::None, line)
     }
 
-    fn create_token_literal(&self, 
-                            token_type: TokenType, 
+    const fn create_token_literal(token_type: TokenType, 
                             text: String,
                             literal: Literal,
                             line: usize) -> Token {
@@ -131,7 +129,7 @@ impl Scanner {
         }
     }
 
-    fn is_digit(c: Option<char>) -> bool {
+    const fn is_digit(c: Option<char>) -> bool {
         match c {
             Some(digit) => digit.is_ascii_digit(),
             None => false,
@@ -152,10 +150,14 @@ impl Scanner {
         }
 
         let num = &self.source[start..*current];
-        let num_val = num.parse::<f64>().unwrap();
-        println!("{num:?}");
-        println!("{num_val:?}");
-        (Literal::Number(num_val), Some(TokenType::NUMBER))
+        let num_val = num.parse::<f64>();
+        match num_val {
+            Ok(n) => (Literal::Number(n), Some(TokenType::NUMBER)),
+            Err(e) => {
+                eprintln!("error parsing number: {e}");
+                (Literal::None, None)
+            }
+        }
     }
 
     fn string(&self, 
