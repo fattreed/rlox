@@ -44,14 +44,35 @@ mod test {
         let scanner = Scanner::new(source);
         let expected_token = Token {
             token_type: TokenType::STRING,
-            lexeme: "this is a string".to_string(),
-            literal: Some(Literal::new()),
+            lexeme: "this is a test string".to_string(),
+            literal: Literal::String("this is a test string".to_string()),
             line: 1,
         };
 
         let token = scanner.scan_tokens()[0].clone();
         assert_eq!(token.token_type, TokenType::STRING);
         assert_eq!(token.lexeme, "this is a test string");
+        assert_eq!(token.literal, Literal::String("this is a test string".to_string()));
         assert_eq!(token.line, 1);
     }
+
+    #[test]
+    fn test_scan_num() {
+        let source = "420 69 4 2 0 6 9".to_string();
+        let scanner = Scanner::new(source);
+        let expected_token = Token {
+            token_type: TokenType::NUMBER,
+            lexeme: "420".to_string(),
+            literal: Literal::Number(420.0),
+            line: 1,
+        };
+
+        let token = scanner.scan_tokens()[0].clone();
+        assert_eq!(token.token_type, TokenType::NUMBER);
+        assert_eq!(token.lexeme, "420".to_string());
+        assert_eq!(token.literal, Literal::Number(420.0));
+        assert_eq!(token.line, 1);
+
+    }
 }
+

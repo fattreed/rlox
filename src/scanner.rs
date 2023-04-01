@@ -23,20 +23,26 @@ impl Scanner {
             
             let is_at_end = current >= chars.iter().count();
             let (value, token_type) = self.scan_token(&mut current, start, &mut line, is_at_end);
-            
-            let mut text = "".to_string();
-
-            match value {
-                Some(s) => text = s,
-                None => (),
-            }
 
             match token_type {
-                Some(t) => tokens.push(self.create_token(t, text, line)), 
+                Some(t) => {
+                    match value.clone() {
+                        Literal::String(s) => {
+                            tokens.push(self.create_token_literal(t, s, value, line))
+                        }
+                        Literal::Number(n) => {
+                            tokens.push(self.create_token_literal(t, n.to_string(), value, line))
+                        }
+                        Literal::None => tokens.push(self.create_token(t, "".to_string(), line)),
+                    }
+                }
                 _ => (),
             }
         }
-        tokens.push(self.create_token_literal(TokenType::EOF, "".to_string(), None, line));
+        tokens.push(self.create_token_literal(TokenType::EOF, 
+                                              "".to_string(), 
+                                              Literal::None, 
+                                              line));
         tokens
     }
 
@@ -44,13 +50,13 @@ impl Scanner {
                     token_type: TokenType, 
                     text: String, 
                     line: usize) -> Token {
-        self.create_token_literal(token_type, text, None, line)
+        self.create_token_literal(token_type, text, Literal::None, line)
     }
 
     fn create_token_literal(&self, 
                             token_type: TokenType, 
                             text: String,
-                            literal: Option<Literal>,
+                            literal: Literal,
                             line: usize) -> Token {
         Token {
             token_type: token_type,
@@ -64,45 +70,45 @@ impl Scanner {
                   current: &mut usize,
                   start: usize,
                   line: &mut usize, 
-                  is_at_end: bool) -> (Option<String>, Option<TokenType>) {
+                  is_at_end: bool) -> (Literal, Option<TokenType>) {
         let c = self.advance(current);
         match c {
-            Some('(') => (None, Some(TokenType::LEFT_PAREN)),
-            Some(')') => (None, Some(TokenType::RIGHT_PAREN)),
-            Some('{') => (None, Some(TokenType::LEFT_BRACE)),
-            Some('}') => (None, Some(TokenType::RIGHT_BRACE)),
-            Some(',') => (None, Some(TokenType::COMMA)),
-            Some('.') => (None, Some(TokenType::DOT)),
-            Some('-') => (None, Some(TokenType::MINUS)),
-            Some('+') => (None, Some(TokenType::PLUS)),
-            Some(';') => (None, Some(TokenType::SEMICOLON)),
-            Some('*') => (None, Some(TokenType::STAR)),
+            Some('(') => (Literal::None, Some(TokenType::LEFT_PAREN)),
+            Some(')') => (Literal::None, Some(TokenType::RIGHT_PAREN)),
+            Some('{') => (Literal::None, Some(TokenType::LEFT_BRACE)),
+            Some('}') => (Literal::None, Some(TokenType::RIGHT_BRACE)),
+            Some(',') => (Literal::None, Some(TokenType::COMMA)),
+            Some('.') => (Literal::None, Some(TokenType::DOT)),
+            Some('-') => (Literal::None, Some(TokenType::MINUS)),
+            Some('+') => (Literal::None, Some(TokenType::PLUS)),
+            Some(';') => (Literal::None, Some(TokenType::SEMICOLON)),
+            Some('*') => (Literal::None, Some(TokenType::STAR)),
             Some('!') => {
                 if self.check_next_char(is_at_end, current, '=') {
-                    (None, Some(TokenType::BANG_EQUAL))
+                    (Literal::None, Some(TokenType::BANG_EQUAL))
                 } else {
-                    (None, Some(TokenType::BANG))
+                    (Literal::None, Some(TokenType::BANG))
                 }
             }
             Some('=') => {
                 if self.check_next_char(is_at_end, current, '=') {
-                    (None, Some(TokenType::EQUAL_EQUAL))
+                    (Literal::None, Some(TokenType::EQUAL_EQUAL))
                 } else {
-                    (None, Some(TokenType::EQUAL))
+                    (Literal::None, Some(TokenType::EQUAL))
                 }
             }
             Some('<') => {
                 if self.check_next_char(is_at_end, current, '=') {
-                    (None, Some(TokenType::LESS_EQUAL))
+                    (Literal::None, Some(TokenType::LESS_EQUAL))
                 } else {
-                    (None, Some(TokenType::LESS))
+                    (Literal::None, Some(TokenType::LESS))
                 }
             }
             Some('>') => {
                 if self.check_next_char(is_at_end, current, '=') {
-                    (None, Some(TokenType::GREATER_EQUAL))
+                    (Literal::None, Some(TokenType::GREATER_EQUAL))
                 } else {
-                    (None, Some(TokenType::GREATER))
+                    (Literal::None, Some(TokenType::GREATER))
                 }
             }
             Some('/') => {
@@ -110,22 +116,57 @@ impl Scanner {
                     while self.peek(*current, is_at_end) != Some('\n') && !is_at_end {
                         _ = self.advance(current);
                     }
-                    (None, None)
+                    (Literal::None, None)
                 } else {
-                    (None, Some(TokenType::SLASH))
+                    (Literal::None, Some(TokenType::SLASH))
                 }
             }
             Some('"') => self.string(current, start, is_at_end, line),
-            Some(' ') | Some('\r') | Some('\t') => (None, None),
-            Some('\n') => { *line += 1; (None, None) }
+            Some(' ') | Some('\r') | Some('\t') => (Literal::None, None),
+            Some('\n') => { *line += 1; (Literal::None, None) }
             _ => {
-                eprint!("unexpected token: {}", 0);
-                (None, None)
+                if Self::is_digit(c) {
+                    self.number(current, is_at_end, start)
+                } else {
+                    eprint!("unexpected token: {}", 0);
+                    (Literal::None, None)
+                }
             }
         }
     }
 
-    fn string(&self, current: &mut usize, start: usize, is_at_end: bool, line: &mut usize) -> (Option<String>, Option<TokenType>) {
+    fn is_digit(c: Option<char>) -> bool {
+        match c {
+            Some(digit) => digit >= '0' && digit <= '9',
+            None => false,
+        }
+        
+    }
+
+    fn number(&self, current: &mut usize, is_at_end: bool, start: usize) -> (Literal, Option<TokenType>) {
+        while Self::is_digit(self.peek(*current, is_at_end)) {
+            self.advance(current);
+        }
+
+        if self.peek(*current, is_at_end) == Some('.') && Self::is_digit(self.peek_next(*current)) {
+            self.advance(current);
+            while Self::is_digit(self.peek(*current, is_at_end)) {
+                self.advance(current);
+            }
+        }
+
+        let num = &self.source[start..*current];
+        let num_val = num.parse::<f64>().unwrap();
+        println!("{:?}", num);
+        println!("{:?}", num_val);
+        (Literal::Number(num_val), Some(TokenType::NUMBER))
+    }
+
+    fn string(&self, 
+              current: &mut usize, 
+              start: usize, 
+              is_at_end: bool, 
+              line: &mut usize) -> (Literal, Option<TokenType>) {
         while self.peek(*current, is_at_end) != Some('"') && !is_at_end {
             if self.peek(*current, is_at_end) == Some('\n') { *line += 1 }
             self.advance(current);
@@ -133,13 +174,13 @@ impl Scanner {
 
         if is_at_end {
             eprint!("error line {} unterminated string", line);
-            return (None, None);
+            return (Literal::None, None);
         }
 
         self.advance(current);
 
         let value = &self.source[start+1..*current-1];
-        (Some(value.to_string()), Some(TokenType::STRING))
+        (Literal::String(value.to_string()), Some(TokenType::STRING))
     }
 
     fn advance(&self, current: &mut usize) -> Option<char> {
@@ -151,6 +192,13 @@ impl Scanner {
     fn peek(&self, current: usize, is_at_end: bool) -> Option<char> {
         if is_at_end { return Some('\0') }
         self.source.chars().nth(current)
+    }
+
+    fn peek_next(&self, current: usize) -> Option<char> {
+        if current + 1 >= self.source.chars().count() {
+            return Some('\0');
+        }
+        self.source.chars().nth(current + 1)
     }
 
     fn check_next_char(&self,
@@ -165,22 +213,18 @@ impl Scanner {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct Literal {
-
-}
-
-impl Literal {
-    pub fn new() -> Self {
-        Self {}
-    }
+#[derive(Debug, Clone, PartialEq)]
+pub enum Literal {
+    Number(f64),
+    String(String),
+    None,
 }
 
 #[derive(Debug, Clone)]
 pub struct Token { 
     pub token_type: TokenType,
     pub lexeme: String,
-    pub literal: Option<Literal>,
+    pub literal: Literal,
     pub line: usize,
 }
 
