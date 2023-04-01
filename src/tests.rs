@@ -30,6 +30,8 @@ mod test {
                 TokenType::STRING,
                 TokenType::NUMBER,
                 TokenType::IDENTIFIER,
+                TokenType::CLASS,
+                TokenType::FALSE,
                 TokenType::EOF,
             ];
            
@@ -82,20 +84,65 @@ mod test {
 
     #[test]
     fn test_scan_ids() {
-        let source = "not reserved words".to_string();
+        let source = "not notReserved words".to_string();
         let scanner = Scanner::new(source);
         let _expected_token = Token {
             token_type: TokenType::IDENTIFIER,
-            lexeme: String::new(),
+            lexeme: "notReserved".to_string(),
             literal: Literal::None,
             line: 1,
         }; 
         
         let token = scanner.scan_tokens()[1].clone();
         assert_eq!(token.token_type, TokenType::IDENTIFIER);
-        assert_eq!(token.lexeme, String::new());
+        assert_eq!(token.lexeme, "notReserved".to_string());
         assert_eq!(token.literal, Literal::None);
         assert_eq!(token.line, 1);
+    }
+    
+    #[test]
+    fn test_scan_reserved_words() {
+        let source = "not true notReserved and class".to_string();
+        let scanner = Scanner::new(source);
+        let _expected_token_1 = Token {
+            token_type: TokenType::TRUE,
+            lexeme: "true".to_string(),
+            literal: Literal::None,
+            line: 1,
+        }; 
+        let tokens = scanner.scan_tokens();
+        let token_1 = tokens[1].clone();
+        assert_eq!(token_1.token_type, TokenType::TRUE);
+        assert_eq!(token_1.lexeme, "true".to_string());
+        assert_eq!(token_1.literal, Literal::None);
+        assert_eq!(token_1.line, 1);
+
+        let _expected_token_2 = Token {
+            token_type: TokenType::AND,
+            lexeme: "string".to_string(),
+            literal: Literal::None,
+            line: 1,
+        }; 
+        
+        let token_2 = scanner.scan_tokens()[3].clone();
+        assert_eq!(token_2.token_type, TokenType::AND);
+        assert_eq!(token_2.lexeme, "and".to_string());
+        assert_eq!(token_2.literal, Literal::None);
+        assert_eq!(token_2.line, 1);
+
+        let _expected_token_3 = Token {
+            token_type: TokenType::CLASS,
+            lexeme: "class".to_string(),
+            literal: Literal::None,
+            line: 1,
+        }; 
+        
+        let token_3 = scanner.scan_tokens()[4].clone();
+        assert_eq!(token_3.token_type, TokenType::CLASS);
+        assert_eq!(token_3.lexeme, "class".to_string());
+        assert_eq!(token_3.literal, Literal::None);
+        assert_eq!(token_3.line, 1);
+
     }
 }
 

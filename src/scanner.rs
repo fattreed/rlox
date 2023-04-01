@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{fmt, collections::HashMap};
 
 //FIXME: refactor to not use a struct...is that like bad?
 #[derive(Debug)]
@@ -7,6 +7,28 @@ pub struct Scanner {
 }
 
 impl Scanner {
+    //FIXME find a better way to store this...const?
+    fn keywords() -> HashMap<String, TokenType> {
+        HashMap::from([
+            ("and".to_string(), TokenType::AND),
+            ("class".to_string(), TokenType::CLASS),
+            ("else".to_string(), TokenType::ELSE),
+            ("false".to_string(), TokenType::FALSE),
+            ("for".to_string(), TokenType::FOR),
+            ("fun".to_string(), TokenType::FUN),
+            ("if".to_string(), TokenType::IF),
+            ("nil".to_string(), TokenType::NIL),
+            ("or".to_string(), TokenType::OR),
+            ("print".to_string(), TokenType::PRINT),
+            ("return".to_string(), TokenType::RETURN),
+            ("super".to_string(), TokenType::SUPER),
+            ("this".to_string(), TokenType::THIS),
+            ("true".to_string(), TokenType::TRUE),
+            ("var".to_string(), TokenType::VAR),
+            ("while".to_string(), TokenType::WHILE),
+        ])
+    }
+
     #[must_use] pub const fn new(source: String) -> Self {
         Self {
             source,
@@ -32,7 +54,9 @@ impl Scanner {
                     Literal::Number(n) => {
                         tokens.push(Self::create_token_literal(t, n.to_string(), value, line));
                     }
-                    Literal::None => tokens.push(Self::create_token(t, String::new(), line)),
+                    Literal::None => tokens.push(Self::create_token(t, 
+                                                                    self.source[start..current].to_string(), 
+                                                                    line)),
                 }
             }
         }
@@ -44,8 +68,8 @@ impl Scanner {
     }
 
     const fn create_token(token_type: TokenType, 
-                    text: String, 
-                    line: usize) -> Token {
+                          text: String, 
+                          line: usize) -> Token {
         Self::create_token_literal(token_type, text, Literal::None, line)
     }
 
@@ -123,21 +147,29 @@ impl Scanner {
                 if Self::is_digit(c) {
                     self.number(current, is_at_end, start)
                 } else if Self::is_alpha(c) {
-                    self.identifier(current, is_at_end)
+                    self.identifier(current, is_at_end, start)
                 } else {
-                    eprint!("unexpected token: {}", 0);
+                    //FIXME: stop shouting! im not deaf!
+                    eprint!("unexpected token {c:?} at line {line}");
                     (Literal::None, None)
                 }
             }
         }
     }
 
-    fn identifier(&self, current: &mut usize, is_at_end: bool) -> (Literal, Option<TokenType>) {
+    fn identifier(&self, current: &mut usize, is_at_end: bool, start: usize) -> (Literal, Option<TokenType>) {
         while Self::is_alphanumeric(self.peek(*current, is_at_end)) {
             self.advance(current);
         }
 
-        (Literal::None, Some(TokenType::IDENTIFIER))
+        let id = &self.source[start..*current];
+        let keywords = Self::keywords();
+        let keyword = keywords.get(id);
+
+        match keyword {
+            Some(k) => (Literal::None, Some(k.clone())),
+            None => (Literal::None, Some(TokenType::IDENTIFIER)),
+        }
     }
     
     const fn is_alphanumeric(c: Option<char>) -> bool {
