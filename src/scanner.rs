@@ -142,7 +142,7 @@ impl Scanner {
                 }
             }
             Some('"') => self.string(current, start, is_at_end, line),
-            Some(' ' | '\r' | '\t') => (Literal::None, None),
+            Some(' ' | '\r' | '\t') | None => (Literal::None, None),
             Some('\n') => { *line += 1; (Literal::None, None) }
             _ => {
                 if Self::is_digit(c) {
@@ -150,7 +150,6 @@ impl Scanner {
                 } else if Self::is_alpha(c) {
                     self.identifier(current, is_at_end, start)
                 } else {
-                    //FIXME: stop shouting! im not deaf!
                     eprint!("unexpected token {c:?} at line {line}");
                     (Literal::None, None)
                 }
