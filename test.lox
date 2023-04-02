@@ -15,6 +15,7 @@
 == 
 < 
 <= 
+/* this is a block comment */
 >
 >=
 "this is a string"
@@ -22,3 +23,5 @@
 nonReservedWord
 class
 false
+/* this is a block
+comment that spans 2 lines */

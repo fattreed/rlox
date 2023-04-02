@@ -137,6 +137,13 @@ impl Scanner {
                         _ = self.advance(current);
                     }
                     (Literal::None, None)
+                } else if self.check_next_char(is_at_end, current, '*') {
+                    while self.peek(*current, is_at_end) != Some('*') && self.peek_next(*current) != Some('/') && !is_at_end {
+                        _ = self.advance(current);
+                    }
+                    _ = self.advance(current);
+                    _ = self.advance(current);
+                    (Literal::None, None)
                 } else {
                     (Literal::None, Some(TokenType::SLASH))
                 }

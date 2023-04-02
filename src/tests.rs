@@ -39,7 +39,6 @@ mod test {
 
             let tokens = scanner.scan_tokens();
             for (i, token) in tokens.iter().enumerate() {
-                println!("{:?}", token.token_type);
                 assert_eq!(token.token_type, expected_tokens[i]);
             }
 
